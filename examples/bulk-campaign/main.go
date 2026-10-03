@@ -23,7 +23,7 @@ func main() {
 
 	broadcast, err := client.Campaigns.Bulk(ctx, &mista.BulkCampaignParams{
 		SenderID:     "LOYALTY",
-		Recipients:   []string{"250780000001", "250780000002"},
+		Recipients:   []string{"+1555***4567", "+1555***7890"},
 		Message:      "Double points this weekend!",
 		ScheduleTime: mista.FormatScheduleTime(tomorrow9am),
 	})
@@ -36,8 +36,8 @@ func main() {
 	personalized, err := client.Campaigns.Bulk(ctx, &mista.BulkCampaignParams{
 		SenderID: "LOYALTY",
 		Personalized: []mista.PersonalizedRecipient{
-			{To: "250780000001", Message: "Hi Alice, you have 120 points."},
-			{To: "250780000002", Message: "Hi Bob, you have 45 points."},
+			{To: "+1555***4567", Message: "Hi Alice, you have 120 points."},
+			{To: "+1555***7890", Message: "Hi Bob, you have 45 points."},
 		},
 	})
 	if err != nil {

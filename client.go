@@ -3,7 +3,7 @@
 //
 //	client := mista.NewClient(os.Getenv("MISTA_API_TOKEN"))
 //	msg, err := client.SMS.Send(ctx, &mista.SendSMSParams{
-//		To: "250780000001", SenderID: "YourBrand", Message: "Hello",
+//		To: "+1555***4567", SenderID: "YourBrand", Message: "Hello",
 //	})
 package mista
 

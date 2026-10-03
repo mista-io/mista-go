@@ -19,7 +19,7 @@ func main() {
 	}
 
 	contact, err := client.Contacts.Create(ctx, group.UID, &mista.ContactFields{
-		Phone:     "250780000001",
+		Phone:     "+1555***4567",
 		FirstName: "Alice",
 		LastName:  "Uwase",
 	})

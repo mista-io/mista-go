@@ -15,7 +15,7 @@ func main() {
 	ctx := context.Background()
 	client := mista.NewClient("")
 
-	v, err := client.Verify.Start(ctx, &mista.StartVerificationParams{To: "+250780000001", Channel: "sms"})
+	v, err := client.Verify.Start(ctx, &mista.StartVerificationParams{To: "+1555***4567", Channel: "sms"})
 	if err != nil {
 		log.Fatal(err)
 	}

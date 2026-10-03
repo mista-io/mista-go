@@ -29,7 +29,7 @@ func main() {
 	client := mista.NewClient("YOUR_API_TOKEN") // "" reads MISTA_API_TOKEN
 
 	msg, err := client.SMS.Send(ctx, &mista.SendSMSParams{
-		To:       "250780000001",
+		To:       "+1555***4567",
 		SenderID: "YourBrand",
 		Message:  "Your order has shipped",
 	})
@@ -50,7 +50,7 @@ send, use a campaign.
 
 ```go
 msg, err := client.SMS.Send(ctx, &mista.SendSMSParams{
-	To:       "250780000001",
+	To:       "+1555***4567",
 	SenderID: "YourBrand",
 	Message:  "Hello",
 	Type:     "plain", // plain | unicode | voice | mms | whatsapp | viber | otp
@@ -64,7 +64,7 @@ latest, err := client.Logs.Get(ctx, msg.UID) // delivery status
 // Broadcast: one message, up to 10,000 numbers
 client.Campaigns.Bulk(ctx, &mista.BulkCampaignParams{
 	SenderID:     "LOYALTY",
-	Recipients:   []string{"250780000001", "250780000002"},
+	Recipients:   []string{"+1555***4567", "+1555***7890"},
 	Message:      "Double points this weekend!",
 	ScheduleTime: "2026-12-24 09:00", // or mista.FormatScheduleTime(t); account timezone
 })
@@ -73,8 +73,8 @@ client.Campaigns.Bulk(ctx, &mista.BulkCampaignParams{
 client.Campaigns.Bulk(ctx, &mista.BulkCampaignParams{
 	SenderID: "LOYALTY",
 	Personalized: []mista.PersonalizedRecipient{
-		{To: "250780000001", Message: "Hi Alice, you have 120 points."},
-		{To: "250780000002", Message: "Hi Bob, you have 45 points."},
+		{To: "+1555***4567", Message: "Hi Alice, you have 120 points."},
+		{To: "+1555***7890", Message: "Hi Bob, you have 45 points."},
 	},
 })
 
@@ -178,14 +178,14 @@ client.ContactGroups.Get(ctx, group.UID)
 client.ContactGroups.Update(ctx, group.UID, "Developers KGL")
 
 contact, err := client.Contacts.Create(ctx, group.UID, &mista.ContactFields{
-	Phone:     "250780000001",
+	Phone:     "+1555***4567",
 	FirstName: "Alice",
 	LastName:  "Uwase",
 	Fields:    map[string]string{"CITY": "Kigali"}, // custom fields, keyed by the group's field tag
 })
 client.Contacts.List(ctx, group.UID, 1) // or ListAutoPaging
 client.Contacts.Get(ctx, group.UID, contact.UID)
-client.Contacts.Update(ctx, group.UID, contact.UID, &mista.ContactFields{Phone: "250780000001", FirstName: "Alicia"})
+client.Contacts.Update(ctx, group.UID, contact.UID, &mista.ContactFields{Phone: "+1555***4567", FirstName: "Alicia"})
 client.Contacts.Delete(ctx, group.UID, contact.UID)
 
 client.ContactGroups.Delete(ctx, group.UID) // also deletes its contacts
@@ -194,7 +194,7 @@ client.ContactGroups.Delete(ctx, group.UID) // also deletes its contacts
 ## Verify (OTP)
 
 ```go
-v, err := client.Verify.Start(ctx, &mista.StartVerificationParams{To: "+250780000001", Channel: "sms"})
+v, err := client.Verify.Start(ctx, &mista.StartVerificationParams{To: "+1555***4567", Channel: "sms"})
 
 result, err := client.Verify.Check(ctx, v.SID, "123456")
 if err != nil {

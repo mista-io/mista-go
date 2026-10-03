@@ -1,4 +1,4 @@
-// MISTA_API_TOKEN=... go run ./examples/send-sms 250780000001
+// MISTA_API_TOKEN=... go run ./examples/send-sms "+1555***4567"
 package main
 
 import (

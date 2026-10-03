@@ -60,7 +60,7 @@ func FormatScheduleTime(t time.Time) string {
 
 // SendSMSParams sends one message to one recipient.
 type SendSMSParams struct {
-	// One phone number in international format, e.g. "250780000001".
+	// One phone number in international format, e.g. "+1555***4567".
 	To       string `json:"recipient"`
 	SenderID string `json:"sender_id"`
 	Message  string `json:"message"`
