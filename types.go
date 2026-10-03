@@ -75,18 +75,44 @@ type SendSMSParams struct {
 	DLTTemplateID string `json:"dlt_template_id,omitempty"`
 }
 
+// MessageStatus is the delivery status of a message.
+type MessageStatus string
+
+const (
+	// StatusQueued: not yet accepted by the carrier.
+	StatusQueued MessageStatus = "Queued"
+	// StatusSent: accepted by the carrier, waiting for the handset delivery report.
+	StatusSent        MessageStatus = "Sent"
+	StatusDelivered   MessageStatus = "Delivered"
+	StatusUndelivered MessageStatus = "Undelivered"
+	StatusExpired     MessageStatus = "Expired"
+	StatusRejected    MessageStatus = "Rejected"
+	StatusFailed      MessageStatus = "Failed"
+)
+
+// IsFinal reports whether the status will not change again.
+func (s MessageStatus) IsFinal() bool {
+	switch s {
+	case StatusDelivered, StatusUndelivered, StatusExpired, StatusRejected, StatusFailed:
+		return true
+	}
+	return false
+}
+
 // SMSMessage is a sent message and its delivery status.
 type SMSMessage struct {
-	UID       string     `json:"uid"`
-	To        string     `json:"to"`
-	From      string     `json:"from"`
-	Message   string     `json:"message"`
-	Status    string     `json:"status"`
-	Cost      FlexString `json:"cost"`
-	SMSType   string     `json:"sms_type,omitempty"`
-	Direction string     `json:"direction,omitempty"`
-	CreatedAt string     `json:"created_at,omitempty"`
-	UpdatedAt string     `json:"updated_at,omitempty"`
+	UID     string        `json:"uid"`
+	To      string        `json:"to"`
+	From    string        `json:"from"`
+	Message string        `json:"message"`
+	Status  MessageStatus `json:"status"`
+	// Why the message failed, was undelivered, expired or was rejected; empty otherwise.
+	StatusDetail string     `json:"status_detail,omitempty"`
+	Cost         FlexString `json:"cost"`
+	SMSType      string     `json:"sms_type,omitempty"`
+	Direction    string     `json:"direction,omitempty"`
+	CreatedAt    string     `json:"created_at,omitempty"`
+	UpdatedAt    string     `json:"updated_at,omitempty"`
 }
 
 // ------------------------------------------------------------ Campaigns
@@ -161,9 +187,8 @@ type ListMessagesParams struct {
 	// "2006-01-02"
 	EndDate  string
 	SenderID string
-	// Delivery status, e.g. "Delivered".
-	Status  string
-	SMSType string
+	Status   MessageStatus
+	SMSType  string
 }
 
 // -------------------------------------------------------------- Account
@@ -252,6 +277,66 @@ type VerificationCheck struct {
 	VerifiedAt string `json:"verified_at"`
 	// Why the check failed, e.g. "invalid_code" or "expired".
 	Reason string `json:"reason"`
+}
+
+// ------------------------------------------------------------- Webhooks
+
+// Delivery report webhook event types.
+const (
+	EventMessageDelivered = "message.delivered"
+	EventMessageFailed    = "message.failed"
+	EventWebhookTest      = "webhook.test"
+)
+
+// DeliveryReportWebhook is the account's delivery report webhook registration.
+type DeliveryReportWebhook struct {
+	// Empty when no webhook is registered.
+	URL string `json:"url"`
+	// Signing secret (whsec_...) used to verify the Mista-Signature header.
+	Secret  string   `json:"secret"`
+	Enabled bool     `json:"enabled"`
+	Events  []string `json:"events"`
+}
+
+// SetWebhookParams registers or changes the webhook URL.
+type SetWebhookParams struct {
+	// Public http(s) URL that accepts POST requests.
+	URL string `json:"url"`
+	// Issue a new signing secret. The old one stops working immediately.
+	RotateSecret bool `json:"rotate_secret,omitempty"`
+}
+
+// WebhookTestResult reports how your endpoint answered a webhook.test event.
+type WebhookTestResult struct {
+	Delivered bool `json:"delivered"`
+	// HTTP status your endpoint answered with; 0 if it could not be reached.
+	StatusCode int    `json:"status_code"`
+	Error      string `json:"error"`
+	EventID    string `json:"event_id"`
+}
+
+// DeliveryReport is the message in its final state, sent as a webhook event's data.
+type DeliveryReport struct {
+	UID          string        `json:"uid"`
+	To           string        `json:"to"`
+	From         string        `json:"from"`
+	Status       MessageStatus `json:"status"`
+	StatusDetail string        `json:"status_detail"`
+	Cost         FlexString    `json:"cost"`
+	SMSCount     FlexInt       `json:"sms_count"`
+	// Set when the message was part of a campaign.
+	CampaignUID string `json:"campaign_uid"`
+	SentAt      string `json:"sent_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
+// WebhookEvent is the body of a delivery report webhook request.
+type WebhookEvent struct {
+	// Unique per event and identical across retries; use it to ignore duplicates.
+	ID        string         `json:"id"`
+	Type      string         `json:"type"`
+	CreatedAt string         `json:"created_at"`
+	Data      DeliveryReport `json:"data"`
 }
 
 // ---------------------------------------------------------------- Voice

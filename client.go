@@ -22,7 +22,7 @@ import (
 )
 
 // Version is the SDK version, sent in the User-Agent header.
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 // DefaultBaseURL is the production API host.
 const DefaultBaseURL = "https://api.mista.io"
@@ -44,6 +44,7 @@ type Client struct {
 	Contacts      *ContactsService
 	Verify        *VerifyService
 	Voice         *VoiceService
+	Webhooks      *WebhooksService
 }
 
 // Option configures a Client.
@@ -99,6 +100,7 @@ func NewClient(token string, opts ...Option) *Client {
 	c.Contacts = &ContactsService{c}
 	c.Verify = &VerifyService{c}
 	c.Voice = &VoiceService{client: c, Calls: &CallsService{c}}
+	c.Webhooks = &WebhooksService{c}
 	return c
 }
 

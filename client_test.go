@@ -19,7 +19,7 @@ func TestHeadersAndEnvelope(t *testing.T) {
 		t.Fatalf("unexpected balance %+v", b)
 	}
 	h := rec.calls[0].Header
-	if h.Get("Authorization") != "Bearer test-token" || h.Get("Accept") != "application/json" || h.Get("User-Agent") != "mista-go/0.1.0" {
+	if h.Get("Authorization") != "Bearer test-token" || h.Get("Accept") != "application/json" || h.Get("User-Agent") != "mista-go/"+Version {
 		t.Fatalf("headers %v", h)
 	}
 	if h.Get("Content-Type") != "" {

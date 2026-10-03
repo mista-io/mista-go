@@ -128,7 +128,7 @@ func (s *LogsService) List(ctx context.Context, p *ListMessagesParams) (*Page[SM
 	setString(q, "start_date", p.StartDate)
 	setString(q, "end_date", p.EndDate)
 	setString(q, "from", p.SenderID)
-	setString(q, "status", p.Status)
+	setString(q, "status", string(p.Status))
 	setString(q, "sms_type", p.SMSType)
 	out := new(Page[SMSMessage])
 	err := s.client.do(ctx, http.MethodGet, "/api/v3/log/view", q, nil, out)

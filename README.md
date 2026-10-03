@@ -89,14 +89,14 @@ campaign, err := client.Campaigns.Get(ctx, "campaign_uid")
 ## Message logs
 
 ```go
-page, err := client.Logs.List(ctx, &mista.ListMessagesParams{StartDate: "2026-10-01", Status: "Delivered", PerPage: 50})
+page, err := client.Logs.List(ctx, &mista.ListMessagesParams{StartDate: "2026-10-01", Status: mista.StatusDelivered, PerPage: 50})
 page.Items        // this page
 page.Meta.Total   // total matches
 
-it := client.Logs.ListAutoPaging(ctx, &mista.ListMessagesParams{Status: "Delivered"})
+it := client.Logs.ListAutoPaging(ctx, &mista.ListMessagesParams{Status: mista.StatusFailed})
 for it.Next(ctx) {
 	msg := it.Current()
-	fmt.Println(msg.UID, msg.Status)
+	fmt.Println(msg.UID, msg.Status, msg.StatusDetail)
 }
 if err := it.Err(); err != nil {
 	log.Fatal(err)
@@ -105,6 +105,62 @@ if err := it.Err(); err != nil {
 
 Filters: `Page`, `PerPage`, `StartDate`, `EndDate` (`2006-01-02`), `SenderID`, `Status`, `SMSType`.
 When nothing matches, you get an empty page.
+
+`Status` is a `mista.MessageStatus`:
+
+| Status | Meaning |
+| --- | --- |
+| `StatusQueued` | Not yet accepted by the carrier |
+| `StatusSent` | Accepted by the carrier, waiting for the handset delivery report |
+| `StatusDelivered` | Delivered to the handset (final) |
+| `StatusUndelivered` | The carrier could not deliver it (final) |
+| `StatusExpired` | Not delivered before the carrier gave up (final) |
+| `StatusRejected` | Rejected by the carrier or blocked (final) |
+| `StatusFailed` | Could not be sent (final) |
+
+`status.IsFinal()` tells you whether it can still change. For the last four, `StatusDetail` says why.
+
+## Delivery report webhooks
+
+Instead of polling `Logs.Get`, register a URL and Mista POSTs to it when a message is delivered
+(`message.delivered`) or fails (`message.failed`: Undelivered, Expired, Rejected or Failed).
+
+```go
+hook, err := client.Webhooks.Set(ctx, &mista.SetWebhookParams{URL: "https://example.com/mista/dlr"})
+secret := hook.Secret // whsec_..., store it to verify requests
+
+client.Webhooks.Test(ctx)   // sends a signed webhook.test event now
+client.Webhooks.Get(ctx)
+client.Webhooks.Set(ctx, &mista.SetWebhookParams{URL: hook.URL, RotateSecret: true})
+client.Webhooks.Delete(ctx)
+```
+
+You can also register it in the dashboard under **Developers → Settings**.
+
+Verify every request with the raw body before trusting it:
+
+```go
+http.HandleFunc("/mista/dlr", func(w http.ResponseWriter, r *http.Request) {
+	body, _ := io.ReadAll(r.Body)
+	event, err := mista.VerifyWebhook(body, r.Header.Get(mista.WebhookSignatureHeader), secret)
+	if err != nil {
+		http.Error(w, "invalid signature", http.StatusBadRequest)
+		return
+	}
+	switch event.Type {
+	case mista.EventMessageDelivered:
+		markDelivered(event.Data.UID)
+	case mista.EventMessageFailed:
+		markFailed(event.Data.UID, event.Data.Status, event.Data.StatusDetail)
+	}
+	w.WriteHeader(http.StatusNoContent)
+})
+```
+
+Answer with any 2xx within 10 seconds. Otherwise Mista retries 5 more times over about 3 hours
+(30s, 2m, 10m, 30m, 2h). `event.ID` is the same on every retry, so use it to skip duplicates.
+`VerifyWebhook` rejects signatures older than 5 minutes; change that with `mista.WithTolerance`.
+See [`examples/webhook-server`](examples/webhook-server/main.go).
 
 ## Account
 

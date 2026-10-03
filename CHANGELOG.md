@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.0
+
+- Delivery report webhooks: `Webhooks.Get`, `Webhooks.Set`, `Webhooks.Delete`, `Webhooks.Test`
+- `VerifyWebhook` checks the `Mista-Signature` header and returns the decoded `*WebhookEvent`;
+  failures wrap `ErrWebhookSignature`. Tolerance is configurable with `WithTolerance`.
+- New `MessageStatus` type (`StatusQueued`, `StatusSent`, `StatusDelivered`, `StatusUndelivered`,
+  `StatusExpired`, `StatusRejected`, `StatusFailed`) with `IsFinal()`.
+- `SMSMessage.Status` is now a `MessageStatus` and `SMSMessage.StatusDetail` explains failures.
+  The API no longer appends gateway references to the status (`Sent|ATXid_...` is now `Sent`).
+- `ListMessagesParams.Status` is now a `MessageStatus`. String constants still compile
+  (`Status: "Delivered"`); variables of type `string` need a conversion.
+
 ## v0.1.0
 
 First release, covering the Mista API v3 as documented at https://docs.mista.io:
